@@ -69,6 +69,15 @@ export default async function handler(req, res) {
   const app = express();
   app.use(express.json());
 
+  app.get("/api/health", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    message: "Backend API is running",
+    time: new Date().toISOString(),
+  });
+});
+
+
   app.use("/api/auth", authRoutes);
   app.use("/api/admin", adminRoutes);
   app.use("/api/attendance", attendanceRoutes);
