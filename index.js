@@ -77,7 +77,7 @@ const connectDB = async () => {
 connectDB();
 
 // ---------- HEALTH CHECK ----------
-app.get("/api/health", (req, res) => {
+app.get("/", (req, res) => {
   res.status(200).json({
     status: "ok",
     message: "Backend API is running",

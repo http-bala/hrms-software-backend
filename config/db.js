@@ -1,16 +1,23 @@
 import mongoose from "mongoose";
 
-const connectDB = async (mongoUri) => {
-  try {
-    const conn = await mongoose.connect(mongoUri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
-  } catch (error) {
-    console.error("MongoDB connection error:", error);
-    process.exit(1);
-  }
-};
+let isConnected = false;
 
-export default connectDB;
+export async function connectDB() {
+  if (isConnected) {
+    // console.log("Using cached MongoDB connection");
+    return;
+  }
+
+  try {
+    await mongoose.connect(process.env.MONGO_URI, {
+      // optional recommended options for modern mongoose
+      // useNewUrlParser: true,
+      // useUnifiedTopology: true
+    });
+    isConnected = true;
+    console.log("✅ MongoDB connected (Vercel cached)");
+  } catch (err) {
+    console.error("❌ MongoDB connection error:", err);
+    throw err;
+  }
+}
