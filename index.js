@@ -50,26 +50,34 @@
 //   });
 import express from "express";
 import mongoose from "mongoose";
-import authRoutes from "../routes/authRoutes.js";
-import adminRoutes from "../routes/adminRoutes.js";
-import attendanceRoutes from "../routes/attendanceRoutes.js";
+import dotenv from "dotenv";
 
-let isConnected = false; // For mongoose caching
+import authRoutes from "./routes/authRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
+import attendanceRoutes from "./routes/attendanceRoutes.js";
 
-async function connectDB() {
-  if (isConnected) return;
+dotenv.config();
 
-  await mongoose.connect(process.env.MONGO_URI);
-  isConnected = true;
-}
+const app = express();
 
-export default async function handler(req, res) {
-  await connectDB();
+// Middleware
+app.use(express.json());
 
-  const app = express();
-  app.use(express.json());
+// ---------- DATABASE CONNECTION ----------
+const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log("✅ MongoDB connected successfully");
+  } catch (error) {
+    console.error("❌ Database connection failed:", error.message);
+    process.exit(1);
+  }
+};
 
-  app.get("/api/health", (req, res) => {
+connectDB();
+
+// ---------- HEALTH CHECK ----------
+app.get("/api/health", (req, res) => {
   res.status(200).json({
     status: "ok",
     message: "Backend API is running",
@@ -77,10 +85,14 @@ export default async function handler(req, res) {
   });
 });
 
+// ---------- ROUTES ----------
+app.use("/api/auth", authRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/attendance", attendanceRoutes);
 
-  app.use("/api/auth", authRoutes);
-  app.use("/api/admin", adminRoutes);
-  app.use("/api/attendance", attendanceRoutes);
+// ---------- START SERVER ----------
+const PORT = process.env.PORT || 5000;
 
-  return app(req, res);
-}
+app.listen(PORT, () => {
+  console.log(`🚀 Server is running at: http://localhost:${PORT}`);
+});
